@@ -16,6 +16,6 @@ The GLASS data can be downloaded from the `Tables` page [here](https://www.synap
 ### Prior releases
 Previous projects and associated repositories are listed below:
 
-Barthel, F.P., Johnson, K.C., Varn, F.S., Moskalik, A.D., Tanner, G., Kocakavuk, E., Anderson, K.J., Abiola, O., Aldape, K., Alfaro, K.D., et al. (2019). Longitudinal molecular trajectories of diffuse glioma in adults. Nature 576, 112-120. [Paper.](https://www.nature.com/articles/s41586-019-1775-1) [Code.](https://github.com/TheJacksonLaboratory/GLASS)
+Barthel FP, Johnson KC, Varn FS, et al. Longitudinal molecular trajectories of diffuse glioma in adults. Nature. 2019; 576(7785): 112-120. [Paper.](https://www.nature.com/articles/s41586-019-1775-1) [Code.](https://github.com/TheJacksonLaboratory/GLASS)
 
-Varn, F.S., Johnson, K.C., Martinek, J., Huse, J.T., Nasrallah, M.P., Wesseling, P., Cooper, L.A.D., Malta, T.M., Wade, T.E,, Sabedot, T.S., et al. (2022). Glioma progression is shaped by genetic evolution and microenvironment interactions. Cell 185 (12), 2184-2199. [Paper.](https://www.sciencedirect.com/science/article/pii/S0092867422005360?via%3Dihub) [Code.](https://github.com/fsvarn/GLASSx)
+Varn FS, Johnson KC, Martinek J, et al. Glioma progression is shaped by genetic evolution and microenvironment interactions. Cell. 2022; 185(12): 2184-2199.e16. [Paper.](https://www.sciencedirect.com/science/article/pii/S0092867422005360?via%3Dihub) [Code.](https://github.com/fsvarn/GLASSx)
