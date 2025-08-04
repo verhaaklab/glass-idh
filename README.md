@@ -7,8 +7,8 @@ The Glioma Longitudinal AnalySiS (GLASS) consortium consists of clinical, bioinf
 
 R code used to make each of the figures can be found in the R/figures subdirectory.
 
-### Data Release version spring 2022.
-The data analyzed using this code was part of the third release of the GLASS dataset which was made available in spring 2022. This dataset is managed internally using the PostgreSQL database management system. These data are under active curation so future versions will include additional data as well as correct potential errors.
+### Data Release version 2025.
+The data analyzed using this code was part of the fourth release of the GLASS dataset which was made available in 2025. This dataset is managed internally using the PostgreSQL database management system. These data are under active curation so future versions will include additional data as well as correct potential errors.
 
 ### Data Download
 The GLASS data can be downloaded from the `Tables` page [here](https://www.synapse.org/#!Synapse:syn17038081/tables/) and the `Files` page [here](https://www.synapse.org/#!Synapse:syn26465623). It is also possible to query the data directly using the the API by using queries. You can read more about that [here](https://docs.synapse.org/articles/tables.html).
