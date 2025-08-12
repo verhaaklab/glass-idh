@@ -1,9 +1,9 @@
 #################################################################################################################
-# Content: Multivariable time-to-recurrence stepwise-backward Cox PH models
+# Content: Univariable time-to-recurrence Cox PH models of clinical variables
 # Author: Mircea Tesileanu
 # Date: 2025.07.03
 # R-version: 4.3.2
-# Tables: Extended Data Table 4
+# Tables: Extended Data Table 3
 #################################################################################################################
 
 # Clean start and load libraries
@@ -20,7 +20,7 @@ library(survminer)    # v0.5.0
 # Load relevant data
 molecular.data <-  read.delim("/path/to/driver_changes_14042025.txt")%>%
   mutate(timing.recurrent = substr(tumor_pair_barcode, 20,21),
-         timing.primary = substr(tumor_pair_barcode, 14,15) )%>%
+         timing.primary =   substr(tumor_pair_barcode, 14,15) )%>%
   select(-idh_codel_subtype) 
 
 con <- dbConnect(RPostgres::Postgres(), service = "glass5reader")
@@ -52,6 +52,17 @@ full.data <- survival.data%>%
   group_by(case_barcode)%>%
   mutate(age_at_diagnosis =               if_else(case_age_diagnosis_years >40, "40+", "40 or younger"),
          sex =                            if_else(case_sex == "female", "Female", "Male"),
+         surgery =                        if_else(surgery_number == 1,
+                                                  case_when(surgery_type == "Biopsy" & (surgery_extent_of_resection == "Biopsy"|is.na(surgery_extent_of_resection)) ~"Biopsy",
+                                                            surgery_type == "Craniotomy" & (surgery_extent_of_resection == "Subtotal"|surgery_extent_of_resection == "Total"|is.na(surgery_extent_of_resection)) ~ "Resection",
+                                                            surgery_type == "Craniotomy" & surgery_extent_of_resection == "Biopsy"  ~ "Biopsy",
+                                                            is.na(surgery_type) & surgery_extent_of_resection == "Biopsy" ~ "Biopsy",
+                                                            is.na(surgery_type) & (surgery_extent_of_resection == "Subtotal"|surgery_extent_of_resection == "Total") ~ "Resection"),
+                                                  NA),
+         radiotherapy =                   if_else(surgery_number == 1,
+                                                  case_when(treatment_radiotherapy == T ~ "Treated",
+                                                            treatment_radiotherapy == F ~"Non-treated"),
+                                                  NA),
          alkylating_chemotherapy=         if_else(surgery_number == 1,
                                                   case_when(treatment_alkylating_agent == T  &  (treatment_concurrent_tmz == T|treatment_concurrent_tmz == F|is.na(treatment_concurrent_tmz))~ "Treated",
                                                             treatment_concurrent_tmz == T  &  (treatment_alkylating_agent == T |treatment_alkylating_agent == F|is.na(treatment_alkylating_agent))~ "Treated",
@@ -59,26 +70,10 @@ full.data <- survival.data%>%
                                                             is.na(treatment_alkylating_agent)  &  treatment_concurrent_tmz == F~ "Non-treated"),
                                                   NA),
          glioma.type =                    if_else(idh_codel_subtype != "IDHmut-codel", "IDH-mutant Astrocytomas", "IDH-mutant Oligodendrogliomas"),
-         PIK3CA =                          if_else(timing.primary == "TP" & surgery_number == 1,
-                                                   if_else(gene_symbol == "PIK3CA" & driver_status == "mutant" & driver_change == "P", "present", 
-                                                   if_else(gene_symbol == "PIK3CA" & driver_status == "mutant" & driver_change == "S", "present", "absent")),
-                                                   NA),
-         CDKN2AB =                         if_else(timing.primary == "TP" & surgery_number == 1,
-                                                   if_else(gene_symbol == "CDKN2A/CDKN2B" & driver_status == "HLDEL" & driver_change == "P", "present", 
-                                                   if_else(gene_symbol == "CDKN2A/CDKN2B" & driver_status == "HLDEL" & driver_change == "S", "present", "absent")),
-                                                   NA),
-         CCND2 =                           if_else(timing.primary == "TP" & surgery_number == 1,
-                                                   if_else(gene_symbol == "CCND2" & driver_status == "HLAMP" & driver_change == "P", "present", 
-                                                   if_else(gene_symbol == "CCND2" & driver_status == "HLAMP" & driver_change == "S", "present", "absent")),
-                                                   NA),
-         PDGFRA =                          if_else(timing.primary == "TP" & surgery_number == 1,
-                                                   if_else(gene_symbol == "PDGFRA" & driver_status == "HLAMP" & driver_change == "P", "present", 
-                                                   if_else(gene_symbol == "PDGFRA" & driver_status == "HLAMP" & driver_change == "S", "present", "absent")),
-                                                   NA),
-         CDK46 =                           if_else(timing.primary == "TP" & surgery_number == 1,
-                                                   if_else(gene_symbol == "CDK4/CDK6" & driver_status == "HLAMP" & driver_change == "P", "present", 
-                                                   if_else(gene_symbol == "CDK4/CDK6" & driver_status == "HLAMP" & driver_change == "S", "present", "absent")),
-                                                   NA),
+         CDKN2AB =                        if_else(timing.primary == "TP" & surgery_number == 1,
+                                                  if_else(gene_symbol == "CDKN2A/CDKN2B" & driver_status == "HLDEL" & driver_change == "P", "present", 
+                                                  if_else(gene_symbol == "CDKN2A/CDKN2B" & driver_status == "HLDEL" & driver_change == "S", "present", "absent")),
+                                                  NA),
          grade =                          if_else(surgery_number == 1,
                                                   case_when(CDKN2AB == "present"& idh_codel_subtype == "IDHmut-noncodel" & (grade == "II"|grade == "III"|grade == "IV"|is.na(grade)) ~ "4",
                                                             (CDKN2AB == "absent"|is.na(CDKN2AB))& idh_codel_subtype == "IDHmut-noncodel" & grade == "II" ~ "2",
@@ -100,16 +95,10 @@ patient.lvl.data <- full.data%>%
   summarise(age_at_diagnosis =           age_at_diagnosis[1],
             glioma.type =                glioma.type[1],
             sex =                        sex[1],
+            surgery =                    surgery[1],
+            radiotherapy =               radiotherapy[1],
             alkylating_chemotherapy =    alkylating_chemotherapy[1],
             grade =                      grade[1],
-            PIK3CA =                     case_when(any(PIK3CA=="present") ~ "present", 
-                                                   any(PIK3CA=="absent") ~"absent"),
-            CCND2 =                      case_when(any(CCND2=="present") ~ "present", 
-                                                   any(CCND2=="absent") ~"absent"),
-            PDGFRA =                     case_when(any(PDGFRA=="present") ~ "present", 
-                                                   any(PDGFRA=="absent") ~"absent"),
-            CDK46 =                      case_when(any(CDK46=="present") ~ "present", 
-                                                   any(CDK46=="absent") ~"absent"),
             ttr_status =                 ttr_status[1],
             ttr_time =                   ttr_time[surgery_number == 2]
   )%>%
@@ -118,41 +107,62 @@ patient.lvl.data <- full.data%>%
 
 #################################################################################################################
 
-# Multivariable time-to-recurrence analysis of patients with IDH-mutant astrocytomas
+# Univariable time-to-recurrence analysis of patients with IDH-mutant astrocytomas
 all.astros <- patient.lvl.data %>% 
-  filter(glioma.type == "IDH-mutant Astrocytomas")%>% 
-  filter(!is.na(age_at_diagnosis) & !is.na(alkylating_chemotherapy) & !is.na(PIK3CA)& !is.na(PDGFRA)& !is.na(CDK46))
+  filter(glioma.type == "IDH-mutant Astrocytomas")
 
-coxph.astro<- coxph(Surv(ttr_time, ttr_status) ~ age_at_diagnosis + alkylating_chemotherapy + PIK3CA+
-                      CCND2+ PDGFRA+ CDK46, data = all.astros )
-summary(coxph.astro)
-cox.zph(coxph.astro)
-concordance(coxph.astro)$concordance
+summary(coxph(Surv(ttr_time, ttr_status) ~ age_at_diagnosis, data = all.astros ), conf.int=0.9)
+cox.zph(coxph(Surv(ttr_time, ttr_status) ~ age_at_diagnosis, data = all.astros))
+survfit(Surv(ttr_time, ttr_status) ~ age_at_diagnosis, data = all.astros )
 
-coxph.astro.no.ccnd2 <- coxph(Surv(ttr_time, ttr_status) ~ age_at_diagnosis + alkylating_chemotherapy + PIK3CA+
-                      PDGFRA+ CDK46, data = all.astros )
-step(coxph.astro.no.ccnd2, direction = c( "backward"), steps = 1000)
-step.coxph.astro.no.ccnd2 <-  coxph(Surv(ttr_time, ttr_status) ~ age_at_diagnosis + alkylating_chemotherapy + PDGFRA, data = all.astros )
-summary(step.coxph.astro.no.ccnd2)
-cox.zph(step.coxph.astro.no.ccnd2)
-concordance(step.coxph.astro.no.ccnd2)$concordance
+summary(coxph(Surv(ttr_time, ttr_status) ~ sex, data = all.astros ), conf.int=0.9)
+cox.zph(coxph(Surv(ttr_time, ttr_status) ~ sex, data = all.astros))
+survfit(Surv(ttr_time, ttr_status) ~ sex, data = all.astros )
+
+summary(coxph(Surv(ttr_time, ttr_status) ~ surgery, data = all.astros ), conf.int=0.9)
+cox.zph(coxph(Surv(ttr_time, ttr_status) ~ surgery, data = all.astros))
+survfit(Surv(ttr_time, ttr_status) ~ surgery, data = all.astros )
+
+summary(coxph(Surv(ttr_time, ttr_status) ~ radiotherapy, data = all.astros ), conf.int=0.9)
+cox.zph(coxph(Surv(ttr_time, ttr_status) ~ radiotherapy, data = all.astros))
+survfit(Surv(ttr_time, ttr_status) ~ radiotherapy, data = all.astros )
+
+summary(coxph(Surv(ttr_time, ttr_status) ~ alkylating_chemotherapy, data = all.astros ), conf.int=0.9)
+cox.zph(coxph(Surv(ttr_time, ttr_status) ~ alkylating_chemotherapy, data = all.astros))
+survfit(Surv(ttr_time, ttr_status) ~ alkylating_chemotherapy, data = all.astros )
+
+summary(coxph(Surv(ttr_time, ttr_status) ~ grade, data = all.astros ), conf.int=0.9)
+cox.zph(coxph(Surv(ttr_time, ttr_status) ~ grade, data = all.astros))
+survfit(Surv(ttr_time, ttr_status) ~ grade, data = all.astros )
 
 #################################################################################################################
 
-# Multivariable time-to-recurrence analysis of patients with IDH-mutant oligodendrogliomas
+# Univariable time-to-recurrence analysis of patients with IDH-mutant oligodendrogliomas
 all.oligos <- patient.lvl.data %>% 
-  filter(glioma.type == "IDH-mutant Oligodendrogliomas")%>% 
-  filter(!is.na(sex) & !is.na(grade))
+  filter(glioma.type == "IDH-mutant Oligodendrogliomas")
 
-coxph.oligo <- coxph(Surv(ttr_time, ttr_status) ~ sex + grade, data = all.oligos )
-summary(coxph.oligo)
-cox.zph(coxph.oligo)
-concordance(coxph.oligo)$concordance
+summary(coxph(Surv(ttr_time, ttr_status) ~ age_at_diagnosis, data = all.oligos ), conf.int=0.9)
+cox.zph(coxph(Surv(ttr_time, ttr_status) ~ age_at_diagnosis, data = all.oligos))
+survfit(Surv(ttr_time, ttr_status) ~ age_at_diagnosis, data = all.oligos )
 
-step(coxph.oligo, direction = c( "backward"), steps = 1000)
-step.coxph.oligo <- coxph(Surv(ttr_time, ttr_status) ~ sex, data = all.oligos )
-summary(step.coxph.oligo)
-cox.zph(step.coxph.oligo)
-concordance(step.coxph.oligo)$concordance
+summary(coxph(Surv(ttr_time, ttr_status) ~ sex, data = all.oligos ), conf.int=0.9)
+cox.zph(coxph(Surv(ttr_time, ttr_status) ~ sex, data = all.oligos))
+survfit(Surv(ttr_time, ttr_status) ~ sex, data = all.oligos )
+
+summary(coxph(Surv(ttr_time, ttr_status) ~ surgery, data = all.oligos ), conf.int=0.9)
+cox.zph(coxph(Surv(ttr_time, ttr_status) ~ surgery, data = all.oligos))
+survfit(Surv(ttr_time, ttr_status) ~ surgery, data = all.oligos )
+
+summary(coxph(Surv(ttr_time, ttr_status) ~ radiotherapy, data = all.oligos ), conf.int=0.9)
+cox.zph(coxph(Surv(ttr_time, ttr_status) ~ radiotherapy, data = all.oligos))
+survfit(Surv(ttr_time, ttr_status) ~ radiotherapy, data = all.oligos )
+
+summary(coxph(Surv(ttr_time, ttr_status) ~ alkylating_chemotherapy, data = all.oligos ), conf.int=0.9)
+cox.zph(coxph(Surv(ttr_time, ttr_status) ~ alkylating_chemotherapy, data = all.oligos))
+survfit(Surv(ttr_time, ttr_status) ~ alkylating_chemotherapy, data = all.oligos )
+
+summary(coxph(Surv(ttr_time, ttr_status) ~ grade, data = all.oligos ), conf.int=0.9)
+cox.zph(coxph(Surv(ttr_time, ttr_status) ~ grade, data = all.oligos))
+survfit(Surv(ttr_time, ttr_status) ~ grade, data = all.oligos )
 
 #################################################################################################################
