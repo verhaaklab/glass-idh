@@ -5,7 +5,7 @@
 ### Overview
 The Glioma Longitudinal AnalySiS (GLASS) consortium consists of clinical, bioinformaticians, and basic science researchers from leading institutions across the world striving to better understand glioma tumor evolution and to expose its therapeutic vulnerabilities. The code in this respository was used to generate the figures and perform the analyses described in our [2025 publication](https://www.biorxiv.org/content/10.1101/2025.07.11.664189v1.full) in BioRxiv.
 
-R code used to make each of the figures can be found in the R/figures/GLASS-IDH subdirectory.
+R code used to make each of the figures can be found in the figures/R subdirectory.
 
 ### Data Release version 2025.
 The data analyzed using this code was part of the fourth release of the GLASS dataset which was made available in 2025. This dataset is managed internally using the PostgreSQL database management system. These data are under active curation so future versions will include additional data as well as correct potential errors.
