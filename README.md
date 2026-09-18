@@ -25,12 +25,12 @@ Varn FS, Johnson KC, Martinek J, et al. Glioma progression is shaped by genetic 
 ## Repository layout
 
 The repository separates **the code behind this manuscript** from **the standardized
-GLASS infrastructure it was built on top of**. The first two directories below are
+GLASS infrastructure it was built on top of**. The first three directories below are
 the former; the last two are the latter.
 
 | Directory | What it holds |
 |---|---|
-| [`analysis/`](#analysis) | Analyses that generate derived results — copy number, structural variants, mutational signatures |
+| [`analysis/`](#analysis) | Analyses that generate derived results such as copy number, structural variants, mutational signatures |
 | [`figures/`](#figures) | One script per manuscript figure panel |
 | [`tables/`](#tables) | One script per manuscript table, mostly cohort description and survival models |
 | [`legacy_codes/`](#legacy_codes) | Code from the prior GLASS publications listed above, retained for provenance |
@@ -52,9 +52,6 @@ then read. 23 files in four subdirectories.
 | `analysis/SQL/` | 4 | Query definitions consumed by the scripts and pipelines — CNA extraction, the hypermutant and non-hypermutant dN/dS inputs, GISTIC preparation |
 | `analysis/python/` | 4 | Two self-contained, resume-aware pipeline drivers — `mutational_signature_pipeline.sh` (repeat-region filtering → SigProfilerMatrixGenerator/Extractor → Palimpsest deconvolution) and `kataegis_pipeline.sh` (clustered-mutation / kataegis calling via SigProfilerSimulator + SigProfilerClusters) — plus an AmpliconSuite manifest builder and the SvABA SLURM script |
 | `analysis/snakemake/` | 3 | Cluster workflows over BAM files: `ampsuite.smk`, `ascat.smk`, `sigprofilertoolkit.smk` |
-
-Note that the `analysis/python/` drivers are bash, not Python — they orchestrate
-R and Python stages and are named for the toolchain they drive.
 
 ### `figures/`
 
