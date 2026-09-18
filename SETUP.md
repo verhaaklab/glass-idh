@@ -234,23 +234,7 @@ figure/table path, and they depend on external tools installed separately:
 
 ---
 
-## 5. Reference genome builds
-
-Both GRCh37/hg19 and GRCh38/hg38 appear in this repository, and that is
-deliberate, not an inconsistency:
-
-- **GRCh37 / hg19** — the GLASS variant calls themselves. The signature and
-  kataegis pipelines in `analysis/python/` default to `--genome GRCh37` and load
-  `BSgenome.Hsapiens.UCSC.hg19`.
-- **hg38** — the copy-number and chromothripsis figure scripts in `figures/R/`
-  load `BSgenome.Hsapiens.UCSC.hg38` for cytoband and segment coordinates.
-
-Check the `--genome` flag and the `BSgenome` import at the top of a script before
-assuming a build.
-
----
-
-## 6. Running the code
+## 5. Running the code
 
 There is no master driver; each script is standalone and is run directly.
 
