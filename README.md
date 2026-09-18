@@ -3,7 +3,7 @@
 ## The GLASS consortium
 
 ### Overview
-The Glioma Longitudinal AnalySiS (GLASS) consortium consists of clinical, bioinformaticians, and basic science researchers from leading institutions across the world striving to better understand glioma tumor evolution and to expose its therapeutic vulnerabilities. The code in this respository was used to generate the figures and perform the analyses described in our [2025 publication](https://www.biorxiv.org/content/10.1101/2025.07.11.664189v1.full) in BioRxiv.
+The Glioma Longitudinal AnalySiS (GLASS) consortium consists of clinicians, bioinformaticians, and basic science researchers from leading institutions across the world striving to better understand glioma tumor evolution and to expose its therapeutic vulnerabilities. The code in this respository was used to generate the figures and perform the analyses described in our [2025 publication](https://www.biorxiv.org/content/10.1101/2025.07.11.664189v1.full) in BioRxiv.
 
 R code used to make each of the figures can be found in the figures/R subdirectory.
 
@@ -24,9 +24,7 @@ Varn FS, Johnson KC, Martinek J, et al. Glioma progression is shaped by genetic 
 
 ## Repository layout
 
-The repository separates **the code behind this manuscript** from **the standardized
-GLASS infrastructure it was built on top of**. The first three directories below are
-the former; the last two are the latter.
+The repository separates **the code behind this manuscript** from **the standardized GLASS infrastructure it was built on top of**. The first three directories below are the former; the last two are the latter.
 
 | Directory | What it holds |
 |---|---|
@@ -36,27 +34,24 @@ the former; the last two are the latter.
 | [`legacy_codes/`](#legacy_codes) | Code from the prior GLASS publications listed above, retained for provenance |
 | [`preprocessing_pipeline/`](#preprocessing_pipeline) | The GLASS workflow that produced the database itself |
 
-Environment and database configuration for `analysis/`, `figures/` and `tables/`
-is documented separately in [`SETUP.md`](SETUP.md).
-
----
+Environment and database configuration for `analysis/`, `figures/` and `tables/` is documented separately in [`SETUP.md`](SETUP.md).
 
 ### `analysis/`
 
-Derived analyses: everything that computes a result which the figures and tables
-then read. 23 files in four subdirectories.
+Derived analyses: everything that computes a result which the figures and tables then read. 23 files in six subdirectories, split by language and by role — R and Python for code you call directly, `bash/` and `slurm/` for the drivers that orchestrate multi-stage runs, `snakemake/` for the cluster workflows.
 
 | Subdirectory | Files | Contents |
 |---|---|---|
 | `analysis/R/` | 12 | Chromothripsis calling (ShatterSeek), ecDNA/amplicon analysis (AmpliconSuite), allele-specific copy number (ASCAT), whole-genome doubling, fraction-of-genome-altered calculation, GISTIC input preparation, copy-number signature exploration, telomere-length normalisation |
 | `analysis/SQL/` | 4 | Query definitions consumed by the scripts and pipelines — CNA extraction, the hypermutant and non-hypermutant dN/dS inputs, GISTIC preparation |
-| `analysis/python/` | 4 | Two self-contained, resume-aware pipeline drivers — `mutational_signature_pipeline.sh` (repeat-region filtering → SigProfilerMatrixGenerator/Extractor → Palimpsest deconvolution) and `kataegis_pipeline.sh` (clustered-mutation / kataegis calling via SigProfilerSimulator + SigProfilerClusters) — plus an AmpliconSuite manifest builder and the SvABA SLURM script |
-| `analysis/snakemake/` | 3 | Cluster workflows over BAM files: `ampsuite.smk`, `ascat.smk`, `sigprofilertoolkit.smk` |
+| `analysis/bash/` | 2 | Two self-contained, resume-aware pipeline drivers: `mutational_signature_pipeline.sh` (repeat-region filtering → SigProfilerMatrixGenerator/Extractor → Palimpsest deconvolution) and `kataegis_pipeline.sh` (clustered-mutation / kataegis calling via SigProfilerSimulator + SigProfilerClusters). Both accept `--dry-run` |
+| `analysis/python/` | 1 | `ampsuite_manifest.py`, the AmpliconSuite sample-manifest builder called by `ampsuite.smk` |
+| `analysis/slurm/` | 1 | `GLASS-I_SvABA.sbatch`, the SvABA structural-variant calling job |
+| `analysis/snakemake/` | 3 | Cluster workflows over BAM files: `ampsuite.smk`, `ascat.smk`, `sigprofilertoolkit.smk`. See the note in [`SETUP.md`](SETUP.md) §4.3 — their helper-script paths need editing before they run |
 
 ### `figures/`
 
-One script per figure panel, 28 files. Each is standalone: it opens the GLASS
-database, builds its own plotting table, and writes the panel.
+One script per figure panel, 28 files. Each is standalone: it opens the GLASS database, builds its own plotting table, and writes the panel.
 
 | Subdirectory | Files | Contents |
 |---|---|---|
@@ -77,27 +72,15 @@ Output is formatted with `gt` and `gtsummary`.
 
 ### `legacy_codes/`
 
-**Created separately, outside the scope of this manuscript's analysis code**, under
-the same standardized GLASS pipeline protocols. 333 files of R (308), Python (19)
-and Julia (5) from the earlier GLASS publications listed under *Prior releases*
-above, retained for provenance and reproducibility of those papers.
+**Created separately, outside the scope of this manuscript's analysis code**, under the same standardized GLASS pipeline protocols. 333 files of R (308), Python (19) and Julia (5) from the earlier GLASS publications listed under *Prior releases* above, retained for provenance and reproducibility of those papers.
 
-Organised by topic under `legacy_codes/R/`: single-cell deconvolution
-(CIBERSORTx), neoantigen analysis, SNV and CNV processing, manifest handling,
-mutation timing, figures and tables for the 2019 and 2022 papers, and a Shiny
-app. The Julia code covers subclonal selection analysis.
+Organised by topic under `legacy_codes/R/`: single-cell deconvolution (CIBERSORTx), neoantigen analysis, SNV and CNV processing, manifest handling, mutation timing, figures and tables for the 2019 and 2022 papers, and a Shiny app. The Julia code covers subclonal selection analysis.
 
-This directory is **not** maintained against the current data release and its
-dependencies are not part of [`SETUP.md`](SETUP.md).
+This directory is **not** maintained against the current data release and its dependencies are not part of [`SETUP.md`](SETUP.md).
 
 ### `preprocessing_pipeline/`
 
-**Created separately, through the standardized GLASS consortium pipeline protocols
-described in the [2025 publication](https://www.biorxiv.org/content/10.1101/2025.07.11.664189v1.full)
-linked above and established in the prior GLASS releases listed under *Prior
-releases*.** 251 files. This is the workflow that produced the PostgreSQL database
-the rest of the repository queries — it is not re-run as part of reproducing a
-figure, and it is not covered by [`SETUP.md`](SETUP.md).
+**Created separately, through the standardized GLASS consortium pipeline protocols described in the [2025 publication](https://www.biorxiv.org/content/10.1101/2025.07.11.664189v1.full) linked above and established in the prior GLASS releases listed under *Prior releases*.** 251 files. This is the workflow that produced the PostgreSQL database the rest of the repository queries — it is not re-run as part of reproducing a figure, and it is not covered by [`SETUP.md`](SETUP.md).
 
 | Subdirectory | Files | Contents |
 |---|---|---|
@@ -108,19 +91,13 @@ figure, and it is not covered by [`SETUP.md`](SETUP.md).
 | `bin/`, `jar/` | — | Bundled executables and Java dependencies |
 | `dag/`, `dbm/` | — | Workflow DAGs and the database schema diagram |
 
-Because this directory carries its own environment specifications in `envs/`, use
-those rather than the instructions in [`SETUP.md`](SETUP.md) if you need to re-run
-any part of it.
+Because this directory carries its own environment specifications in `envs/`, use those rather than the instructions in [`SETUP.md`](SETUP.md) if you need to re-run any part of it.
 
 ---
 
 ## Where to start
 
-- **Reproducing a figure or table** → read [`SETUP.md`](SETUP.md), configure the
-  database connection, then run the single script for that panel.
-- **Reproducing a derived analysis** → the corresponding script or pipeline in
-  `analysis/`; the two drivers in `analysis/python/` accept `--dry-run`.
-- **Understanding how the data was generated** → `preprocessing_pipeline/` and the
-  methods of the manuscript.
-- **Looking for code from the 2019 or 2022 papers** → `legacy_codes/`, or the
-  dedicated repositories linked under *Prior releases*.
+- **Reproducing a figure or table** → read [`SETUP.md`](SETUP.md), configure the database connection, then run the single script for that panel.
+- **Reproducing a derived analysis** → the corresponding script in `analysis/R/`, or one of the two drivers in `analysis/bash/`, which accept `--dry-run`.
+- **Understanding how the data was generated** → `preprocessing_pipeline/` and the methods of the manuscript.
+- **Looking for code from the 2019 or 2022 papers** → `legacy_codes/`, or the dedicated repositories linked under *Prior releases*.
